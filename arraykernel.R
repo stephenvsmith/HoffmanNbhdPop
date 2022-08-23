@@ -69,10 +69,16 @@ results_list <- lapply(1:num_trials,function(num){
                              run_pc_target,
                              curr_dir,
                              mc.preschedule = FALSE,mc.cores = 1)
+
   results_final_df_lfci <- data.frame(do.call(rbind,results_lfci_df))
   results_final_df_lpc <- data.frame(do.call(rbind,results_lpc_df))
   results_final_df <- results_final_df_lfci %>% 
-    left_join(results_final_df_lpc,by=c("targets"),suffix=c("_lfci","_lpc"))
+    left_join(results_final_df_lpc,by=c("targets","size","num_edges","num_targets"),suffix=c("_lfci","_lpc")) %>% 
+    rename_with(~paste0(str_extract(.,"(lpc|lfci)$"),
+                        "_",
+                        str_extract(.,"^[a-z]+")),
+                ends_with(c("_lpc","_lfci")))
+  
   saveRDS(results_final_df,paste0("results_",array_num,"_",num,".rds"))
   setwd(curr_dir)
   return(results_final_df)

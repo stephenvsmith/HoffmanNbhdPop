@@ -5,12 +5,12 @@
 set.seed(555)
 
 # Download the newest version of the Local FCI package
-devtools::install_github("stephenvsmith/LocalFCI") # ,quiet=TRUE
+#devtools::install_github("stephenvsmith/LocalFCI") # ,quiet=TRUE
 
 net_names <- gsub(".rds","",list.files(rds_dir))
 nets_to_skip <- c("diabetes","link","munin","munin1")
 net <- setdiff(net_names,nets_to_skip)
-net <- c("alarm","barley","child","insurance","link","mildew","hepar2","pigs","andes","munin2")
+net <- c("alarm","arth150","barley","child","pathfinder","insurance","link","mildew","hepar2","pigs","andes","munin2")
 high <- c(0.1) # For variances
 ub <- c(0.5) # For coefficients
 n <- c(10)

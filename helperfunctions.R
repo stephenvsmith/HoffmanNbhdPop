@@ -231,6 +231,7 @@ create_target_directory <- function(t){
 
 # Compile all results about the simulation
 neighborhood_results <- function(t,localfci_result,results_timing){
+  
   if (length(t)>1){
     nbhd_list <- lapply(t,function(target){
       check_neighbors_retrieval(network_info$p,network_info$node_names,network_info$true_dag,target-1)+1
@@ -251,14 +252,15 @@ neighborhood_results <- function(t,localfci_result,results_timing){
   }
   results <- all_metrics(localfci_mat,
                          true_neighborhood_graph,
-                         localfci_mat,
-                         sapply(t,function(target) {which(nbhd==target)-1}),verbose = FALSE) # Need to check out the sapply here
+                         sapply(t,function(tg) {which(nbhd==tg)-1}),
+                         algo="lfci",ref="sub_cpdag",verbose = FALSE) 
+
   nbhd_metrics <- neighborhood_metrics(true_neighborhood_graph)
   
   results <- cbind(nbhd_metrics,results)
   results <- results %>% 
-    mutate(fci_num_tests=results_timing$num_tests[["Local FCI"]],
-           fci_time=results_timing$time_diff[["Local FCI"]]) %>%
+    mutate(lfci_num_tests=results_timing$num_tests[["Local FCI"]],
+           lfci_time=results_timing$time_diff[["Local FCI"]]) %>%
     mutate(sim_number=array_num,
            net=net,
            num_targets=length(t),
@@ -267,18 +269,15 @@ neighborhood_results <- function(t,localfci_result,results_timing){
     mutate(totalSkeletonTime=localfci_result$totalSkeletonTime,
            targetSkeletonTimes=paste(localfci_result$targetSkeletonTimes,collapse = ","),
            totalcpptime=localfci_result$totalTime,
-           nodes=paste(localfci_result$Nodes,collapse = ",")
+           nodes=paste(localfci_result$Nodes,collapse = ","),
+           true_nodes=paste(nbhd,collapse = ",")
     )
   
-  results <- cbind(results,interNeighborhoodEdgeMetrics(localfci_mat,
-                                                        network_info$true_dag,
-                                                        t))
-  
-
   return(results)
 }
 
 neighborhood_pc_results <- function(t,localpc_result,results_timing){
+
   if (length(t)>1){
     nbhd_list <- lapply(t,function(target){
       check_neighbors_retrieval(network_info$p,network_info$node_names,network_info$true_dag,target-1)+1
@@ -299,8 +298,8 @@ neighborhood_pc_results <- function(t,localpc_result,results_timing){
   }
   results <- all_metrics(localpc_mat,
                          true_neighborhood_graph,
-                         localpc_mat,
-                         sapply(t,function(target) {which(nbhd==target)-1}),verbose = FALSE) # Need to check out the sapply here
+                         sapply(t,function(tg) {which(nbhd==tg)-1}),
+                         algo = "lpc",ref = "sub_cpdag",verbose = FALSE) 
   nbhd_metrics <- neighborhood_metrics(true_neighborhood_graph)
   
   results <- cbind(nbhd_metrics,results)
@@ -312,16 +311,10 @@ neighborhood_pc_results <- function(t,localpc_result,results_timing){
            num_targets=length(t),
            targets=paste(t,collapse = ","),
            p=network_info$p) %>% 
-    mutate(lpc_totalSkeletonTime=localpc_result$totalSkeletonTime,
-           lpc_targetSkeletonTimes=paste(localpc_result$targetSkeletonTimes,collapse = ","),
-           lpc_totalcpptime=localpc_result$totalTime,
+    mutate(targetSkeletonTimes=paste(localpc_result$targetSkeletonTimes,collapse = ","),
+           totalcpptime=localpc_result$totalTime,
            nodes=paste(localpc_result$Nodes,collapse = ",")
     )
-
-  results <- cbind(results,interNeighborhoodEdgeMetrics(localpc_mat,
-                                                        network_info$true_dag,
-                                                        t))
-  
   
   return(results)
 }
